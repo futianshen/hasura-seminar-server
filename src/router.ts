@@ -33,7 +33,6 @@ router.post("/login", async (req, res) => {
             id
             username
             password
-            role
           }
         }
       `,
@@ -75,9 +74,7 @@ router.post("/login", async (req, res) => {
     throw new Error("no jwt secret")
   }
 
-  const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: "15 mins",
-  })
+  const token = jwt.sign(payload, process.env.JWT_SECRET)
   res.send({
     code: "SUCCESS",
     message: "login successfully",
