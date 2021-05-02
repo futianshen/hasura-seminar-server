@@ -1,24 +1,25 @@
 import { gql } from "@apollo/client/core"
 import express from "express"
 import createApolloClient from "./apolloClient"
+import { object, string } from "yup"
+import jwt from "jsonwebtoken"
 
 const router = express.Router()
 
 router.post("/login", async (req, res) => {
-  // const validationSchema = object({
-  //   username: string().required(),
-  //   password: string().required(),
-  // })
-  // try {
-  //   await validationSchema.isValid(req.body)
-  // } catch (err) {
-  //   return console.log(err)
-  // }
-  // const { username, password } = validationSchema.cast(req.body)
-  const apolloClient = createApolloClient()
-  const { username, password } = req.body
+  const validationSchema = object({
+    username: string().required(),
+    password: string().required(),
+  })
+  try {
+    await validationSchema.isValid(req.body)
+  } catch (err) {
+    return console.log(err)
+  }
+  const { username, password } = validationSchema.cast(req.body)
   process.env.NODE_ENV === "development" && console.log({ username, password })
 
+  const apolloClient = createApolloClient()
   let user = null
   try {
     const { data } = await apolloClient.query({
@@ -56,28 +57,28 @@ router.post("/login", async (req, res) => {
     })
   }
 
-  // const payload = {
-  //   sub: user.id,
-  //   username,
-  //   "https://hasura.io/jwt/claims": {
-  //     "x-hasura-allowed-roles": ["admin"],
-  //     "x-hasura-default-role": "admin",
-  //     "x-hasura-user-id": user.id,
-  //   },
-  // }
+  const payload = {
+    sub: user.id,
+    username,
+    "https://hasura.io/jwt/claims": {
+      "x-hasura-allowed-roles": ["admin"],
+      "x-hasura-default-role": "admin",
+      "x-hasura-user-id": user.id,
+    },
+  }
 
-  // if (!process.env.JWT_SECRET) {
-  //   throw new Error("no jwt secret")
-  // }
+  if (!process.env.JWT_SECRET) {
+    throw new Error("no jwt secret")
+  }
 
-  // const token = jwt.sign(payload, process.env.JWT_SECRET, {
-  //   expiresIn: "15 mins",
-  // })
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: "15 mins",
+  })
   res.send({
     code: "SUCCESS",
     message: "login successfully",
     result: {
-      token: null,
+      token,
     },
   })
 })
