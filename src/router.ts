@@ -3,6 +3,7 @@ import express from "express"
 import createApolloClient from "./apolloClient"
 import { object, string } from "yup"
 import jwt from "jsonwebtoken"
+import schemas from "../schemas"
 
 const router = express.Router()
 
@@ -22,9 +23,12 @@ router.post("/login", async (req, res) => {
   const apolloClient = createApolloClient()
   let user = null
   try {
-    const { data } = await apolloClient.query({
+    const { data } = await apolloClient.query<
+      schemas.GET_USER,
+      schemas.GET_USERVariables
+    >({
       query: gql`
-        query GET_USER($username: String!) {
+        query GET_USER($username: String) {
           user(where: { username: { _eq: $username } }) {
             id
             username
